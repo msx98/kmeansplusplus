@@ -1,0 +1,3 @@
+rm resources/out/output_1_py.txt
+python3 kmeans.py 3 600 resources/input_1.txt resources/out/output_1_py.txt
+diff resources/output_1.txt resources/out/output_1_py.txt
