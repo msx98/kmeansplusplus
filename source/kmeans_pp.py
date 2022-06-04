@@ -145,12 +145,7 @@ def _update_centroid(centroids: List[List[float]], data: List[List[float]],
     for centroid in centroids:
         new_updated_centroid = []
         # creating the centroid cluster
-        print("hi")
-        print(type(mapping_point_to_centroid[0]))
-        print(type(centroid))
-        print(mapping_point_to_centroid)
         centroid_cluster = [data[i] for i in range(len(data)) if np.all(mapping_point_to_centroid[i] == centroid)]
-        print("bye")
         cluster_size = len(centroid_cluster)
         for i in zip(*centroid_cluster):
             cluster_sum = sum(i)
@@ -211,13 +206,30 @@ def KmeanAlgorithm_C(
 if __name__ == '__main__':
     # print(_find_first_centroids(2))
     k, max_iter, eps, file_name_1, file_name_2 = get_args()
+    print(f"Set args: k={k}, max_iter={max_iter}, eps={eps}")
     datapoints_list = _read_data_as_np(file_name_1, file_name_2)
     verify_data(datapoints_list)
     initial_centroids_list = _find_first_centroids(k, datapoints_list)
+    print(f"Initial: {initial_centroids_list}")
+
+
+    print("Expected:")
+    file_expected = file_name_1.split("_")[0].replace("input","output")+"_"+file_name_1.split("_")[1]+".txt"
+    with open(file_expected, 'r') as f:
+        s = f.read().split("\n")[:-1]
+        s = [x.split(",") for x in s]
+        s[0] = [int(y) for y in s[0]]
+        initial_centroids_list = s[0]
+        print("Desired: " + str([int(y) for y in s[0]]))
+        print([[float(y) for y in x] for x in s[1:]])
+    
+    print(f"set initial centroids: {initial_centroids_list}")
+
+    datapoints_list = [x[1:] for x in datapoints_list]
+
     point_count = len(datapoints_list)
     dims_count = len(datapoints_list[0])
 
-    print(initial_centroids_list)
 
     centroids_list = KmeanAlgorithm(
         initial_centroids_list,
@@ -242,10 +254,3 @@ if __name__ == '__main__':
     )
     print("C output:")
     print([[round(y,4) for y in x] for x in centroids_list_c])
-
-    print("Expected:")
-    file_expected = file_name_1.split("_")[0].replace("input","output")+"_"+file_name_1.split("_")[1]+".txt"
-    with open(file_expected, 'r') as f:
-        s = f.read()#.strip()
-        l = [x.split(",") for x in s.split("\n")][:-1]
-        print(l)
