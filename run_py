@@ -1,3 +1,5 @@
-rm resources/out/output_1_py.txt
-python3 kmeans.py 3 600 resources/input_1.txt resources/out/output_1_py.txt
-diff resources/output_1.txt resources/out/output_1_py.txt
+mkdir -p debug/py
+rm -rf debug/py/*
+cp source/kmeans.py debug/py/kmeans.py
+python3 debug/py/kmeans.py 3 600 resources/input_1.txt debug/py/output_1_py.txt
+diff resources/output_1.txt debug/py/output_1_py.txt

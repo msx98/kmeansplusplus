@@ -1,5 +1,6 @@
-rm resources/out/output_1_c.txt
-gcc -ansi -Wall -Wextra -Werror -pedantic-errors ./kmeans_ex1_c/kmeans_ex1_c/kmeans.c -lm -o ./hw1
-valgrind --show-leak-kinds=all --leak-check=yes ./hw1 3 600 resources/input_1.txt resources/out/output_1_c.txt
-rm hw1
-diff resources/output_1.txt resources/out/output_1_c.txt
+#!/bin/bash
+rm -rf debug/c/*
+gcc -ansi -Wall -Wextra -Werror -pedantic-errors ./source/kmeans.c -lm -o ./hw2
+valgrind --show-leak-kinds=all --leak-check=yes ./hw2 3 600 resources/input_1.txt debug/c/output_1_c.txt
+rm hw2
+diff resources/output_1.txt debug/c/output_1_c.txt
