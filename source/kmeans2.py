@@ -56,6 +56,7 @@ def K_Mean_Plus():
         raise Exception()
     data = _read_data_as_np(file_name1, file_name2)
     first_centroids = _find_first_centroids(K, data)
+    return first_centroids
 
 
 def _find_first_centroids(K: int, data: np.array) -> List[int]:

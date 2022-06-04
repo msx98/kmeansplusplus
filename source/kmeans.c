@@ -113,6 +113,7 @@ void kmeans_iteration(point_t* centroids_list, point_t* points_list, int k, int 
 int is_convergence(point_t* prev_centroids_list, point_t* centroids_list, int k, int dims_count, double epsilon);
 double get_dist_between_points(point_t point_1, point_t point_2, int dims_count);
 double get_abs_point(point_t point, int dims_count);
+void copy_point(point_t* dst, point_t* src);
 
 /*xxxxxxxxxxxxxxxxxxxxxxxxxxxxx//
 //  Method Declarations - END  //
@@ -260,6 +261,30 @@ int is_convergence(point_t* prev_centroids_list, point_t* centroids_list, int k,
     return 1;
 }
 
+static int set_centroids_to_dst(PyObject* obj, point_t* points_list, int dims_count, point_t* dst) {
+    PyObject *centroids_iter, *next_obj, *coords_iter, *next_coord;
+    int i, j;
+    int idx;
+
+    centroids_iter = PyObject_GetIter(obj);
+
+    i=0;
+    while ((next_obj = PyIter_Next(centroids_iter))) {
+
+        idx = (int) PyLong_AsLong(next_obj);
+        for (j=0; j<dims_count; j++) {
+            dst[i].coord[j] = points_list[idx].coord[j];
+        }
+        points_list[idx].cluster = i;
+        dst[i].cluster = i;
+        Py_DECREF(next_obj);
+        i++;
+    }
+    Py_DECREF(centroids_iter);
+    
+    return 0;
+}
+
 static int set_points_to_dst(PyObject* obj, int point_count, int dims_count, point_t* dst) {
     PyObject *points_iter, *next_obj, *coords_iter, *next_coord;
     int i, j;
@@ -360,10 +385,8 @@ static point_t* calculate_centroids(PyObject* obj_initial_centroids, PyObject* o
     }
 
     /* assign points from py objs */
-    get_points_list(obj_initial_centroids, obj_datapoints,
-                    k, point_count,
-                    dims_count,
-                    centroids_list, points_list);
+    set_points_to_dst(obj_datapoints, point_count, dims_count, points_list);
+    set_centroids_to_dst(obj_initial_centroids, points_list, dims_count, centroids_list);
     
     reach_convergence(centroids_list, prev_centroids_list, points_list,
                         dims_count, k, point_count, max_iter, epsilon);
