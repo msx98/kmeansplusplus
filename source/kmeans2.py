@@ -64,7 +64,6 @@ def _find_first_centroids(K: int, data: np.array) -> List[int]:
     if K >= number_of_points_in_data_N:
         print(MSG_ERR_INVALID_INPUT)
         raise Exception()
-    np.random.seed(0)
     centroid_list = [int(data[0][0])]
 
     min_distance_vector = np.zeros(number_of_points_in_data_N)
