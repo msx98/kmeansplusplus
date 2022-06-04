@@ -232,7 +232,7 @@ void reassign_all_centroids(point_t* centroids_list, point_t* points_list, int k
     number_of_hits = 0;
     for (i = 0; i < k; i++) {
         number_of_hits = 0;
-        for (j = 0; j < k; j++) centroids_list[i].coord[j] = 0;
+        for (j = 0; j < dims_count; j++) centroids_list[i].coord[j] = 0;
         for (j = 0; j < line_count; j++) {
             if (points_list[j].cluster == i) {
                 number_of_hits++;
@@ -291,15 +291,51 @@ int write_results_to_file(char* path_to_output, point_t* centroids_list, int k, 
     return STATUS_SUCCESS;
 }
 
-void print_centroids(point_t* centroids_list, int k, int dims_count) {
+char* print_centroids_to_buf(point_t* centroids_list, int k, int dims_count) {
+    char* buf;
+    char* tmp;
     int i, j;
+    size_t sizeof_buf;
+
+    sizeof_buf = 0;
+    for (i = 0; i < k; i++) {
+        for (j = 0; j < dims_count - 1; j++)
+            sizeof_buf += snprintf(NULL, 0, "%.4f,", centroids_list[i].coord[j]);
+        sizeof_buf += snprintf(NULL, 0, "%.4f\n", centroids_list[i].coord[j]);
+    }
+
+    buf = malloc(sizeof_buf);
+    printf("Buf size is %d\n", sizeof_buf);
+    if (!buf) return NULL;
+
+    for (i = 0; i < k; i++) {
+        for (j = 0; j < dims_count - 1; j++)
+            printf("%.4f,", centroids_list[i].coord[j]);
+        if (i<(k-1)) printf("%.4f\n", centroids_list[i].coord[j]);
+    }
+    printf("%.4f", centroids_list[k-1].coord[dims_count-1]);
+    buf[sizeof_buf-sizeof(char)*1] = 0;
+
+    return buf;
+}
+
+void print_centroids(point_t* centroids_list, int k, int dims_count) {
+    /*int i, j;
     for (i = 0; i < k; i++) {
         for (j = 0; j < dims_count - 1; j++)
             printf("%.4f,", centroids_list[i].coord[j]);
         printf("%.4f\n", centroids_list[i].coord[dims_count - 1]);
     }
-    printf("\n");
+    printf("\n");*/
+    char* buf = print_centroids_to_buf(centroids_list, k, dims_count);
+    if (!buf) return;
+    printf("Printing buf:\n");
+    printf("%s\n", buf);
+    printf("Printed buf\n");
+    free(buf);
 }
+
+
 
 /*xxxxxxxxxxxxxxxxxxxxxxxxxxxx//
 //  Method Definitions - END  //
@@ -388,15 +424,10 @@ static void reach_convergence(point_t* centroids_list, point_t* prev_centroids_l
     /* perform kmeans algorithm! */
     /* init_centroids(centroids_list, points_list, k, dims_count); */
     for (i = 0; i < max_iter; i++) {
-        printf("Performing convergence iteration:\n");
         copy_centroids(prev_centroids_list, centroids_list, k, dims_count);
-        printf("Copied centroids\n");
         kmeans_iteration(centroids_list, points_list, k, point_count, dims_count);
-        printf("Performed iteration\n");
         if (is_convergence(prev_centroids_list, centroids_list, k, dims_count, epsilon)) break;
-        printf("Did not break\n");
     }
-    printf("Broke\n");
 }
 
 static point_t* calculate_centroids(PyObject* obj_initial_centroids, PyObject* obj_datapoints,
@@ -416,37 +447,33 @@ static point_t* calculate_centroids(PyObject* obj_initial_centroids, PyObject* o
                     k, point_count,
                     dims_count,
                     centroids_list, points_list);
-
-    printf("Got point lists\n");
     
     reach_convergence(centroids_list, prev_centroids_list, points_list,
                         dims_count, k, point_count, max_iter, epsilon);
-    
-    printf("Reached convergence\n");
 
     pointlist_free(&points_list, point_count, dims_count);
     pointlist_free(&prev_centroids_list, k, dims_count);
-
-    printf("Freed point arrays\n");
 
     return centroids_list;
 }
 
 static PyObject* centroids_to_PyObject(point_t* centroids_list, int k, int dims_count) {
+    PyObject *list, *coords, *single_coord;
     int i,j;
-    double z = 1;
-    int n = 2;
 
-    printf("Got length %d, dims %d\n", k, dims_count);
-
+    list = PyList_New(k);
     for (i=0; i<k; i++) {
+        coords = PyList_New(dims_count);
         for (j=0; j<dims_count; j++) {
-            printf("%.04f,", centroids_list[i].coord[j]);
+            single_coord = Py_BuildValue("d", centroids_list[i].coord[j]);
+            /*printf("%.04f", centroids_list[i].coord[j]);*/
+            PyList_SetItem(coords, j, single_coord);
         }
-        printf("\n");
+        /*printf("\n");*/
+        PyList_SetItem(list, i, coords);
     }
 
-    return Py_BuildValue("d", 5.3);
+    return list;
 }
 
 static PyObject* fit(PyObject *self, PyObject *args) {

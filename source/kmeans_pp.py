@@ -1,4 +1,4 @@
-import mykmeanssp as cd1
+import mykmeanssp
 import numpy as np
 
 np.random.seed(0)
@@ -13,7 +13,7 @@ eps=0.01
 datapoints_list = np.random.rand(point_count, dims_count)
 initial_centroids_list = np.random.rand(k, dims_count)
 
-result = cd1.fit(
+result = mykmeanssp.fit(
     initial_centroids_list,
     datapoints_list,
     dims_count,
