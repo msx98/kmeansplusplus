@@ -356,8 +356,7 @@ static point_t* calculate_centroids(PyObject* obj_initial_centroids, PyObject* o
     status = allocate_necessary(&centroids_list, &prev_centroids_list, &points_list,
                         dims_count, k, point_count);
     if (status != STATUS_SUCCESS) {
-        printf("Allocation failed\n");
-        return NULL;
+        return PyErr_NoMemory();
     }
 
     /* assign points from py objs */
@@ -423,10 +422,9 @@ static PyMethodDef mykmeansspMethods[] = {
     {"fit", 
       (PyCFunction) fit,
       METH_VARARGS, 
-      PyDoc_STR("A geometric series up to n. sum_up_to_n(z^n)")},
+      PyDoc_STR("This method performs the k-means algorithm with the specified arguments")},
     {NULL, NULL, 0, NULL} 
 };
-
 
 /* This initiates the module using the above definitions. */
 static struct PyModuleDef moduledef = {
@@ -437,13 +435,6 @@ static struct PyModuleDef moduledef = {
     mykmeansspMethods /* the PyMethodDef array from before containing the methods of the extension */
 };
 
-
-/*
- * The PyModuleDef structure, in turn, must be passed to the interpreter in the module’s initialization function.
- * The initialization function must be named PyInit_name(), where name is the name of the module and should match
- * what we wrote in struct PyModuleDef.
- * This should be the only non-static item defined in the module file
- */
 PyMODINIT_FUNC PyInit_mykmeanssp(void)
 {
     PyObject *m;
