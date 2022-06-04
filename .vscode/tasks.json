@@ -11,6 +11,7 @@
                 "-o",
                 "${fileDirname}/${fileBasenameNoExtension}",
                 "-lm",
+                "-lpython3.10"
             ],
             "options": {
                 "cwd": "${fileDirname}"

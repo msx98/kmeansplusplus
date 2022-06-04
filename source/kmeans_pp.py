@@ -1,4 +1,24 @@
 import mykmeanssp as cd1
-# To use this run in the terminal: python setup.py build_ext --inplace
-# And on Nova: python3.8.5 setup.py build_ext --inplace
-print(cd1.geo(0.5, 100))
+import numpy as np
+
+np.random.seed(0)
+
+
+k = 10
+dims_count = 3
+point_count = 25
+max_iter=10
+
+datapoints_list = np.random.rand(point_count, dims_count)
+initial_centroids_list = np.random.rand(k, dims_count)
+
+result = cd1.fit(
+    initial_centroids_list,
+    datapoints_list,
+    dims_count,
+    k,
+    point_count,
+    max_iter
+)
+
+print(result)
