@@ -213,6 +213,7 @@ if __name__ == '__main__':
     print(f"Initial: {initial_centroids_list}")
 
 
+    desired = None
     print("Expected:")
     file_expected = file_name_1.split("_")[0].replace("input","output")+"_"+file_name_1.split("_")[1]+".txt"
     with open(file_expected, 'r') as f:
@@ -221,15 +222,16 @@ if __name__ == '__main__':
         s[0] = [int(y) for y in s[0]]
         initial_centroids_list = s[0]
         print("Desired: " + str([int(y) for y in s[0]]))
-        print([[float(y) for y in x] for x in s[1:]])
+        desired = [[float(y) for y in x] for x in s[1:]]
+    print(desired)
     
     print(f"set initial centroids: {initial_centroids_list}")
 
+    datapoints_list = sorted(datapoints_list, key=lambda x: float(x[0]))
     datapoints_list = [x[1:] for x in datapoints_list]
 
     point_count = len(datapoints_list)
     dims_count = len(datapoints_list[0])
-
 
     centroids_list = KmeanAlgorithm(
         initial_centroids_list,
@@ -252,5 +254,14 @@ if __name__ == '__main__':
         max_iter,
         eps
     )
+    centroids_list_c = [[round(y,4) for y in x] for x in centroids_list_c]
     print("C output:")
-    print([[round(y,4) for y in x] for x in centroids_list_c])
+    print(centroids_list_c)
+
+    desired = np.array(desired)
+    centroids_list = np.array(centroids_list)
+    centroids_list_c = np.array(centroids_list_c)
+
+    dist_py = np.all(np.abs(desired-centroids_list) < 0.001)
+    dist_c  = np.all(np.abs(desired-centroids_list_c) < 0.001)
+    assert(dist_py and dist_c)
