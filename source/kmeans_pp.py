@@ -8,6 +8,7 @@ k = 10
 dims_count = 3
 point_count = 25
 max_iter=10
+eps=0.01
 
 datapoints_list = np.random.rand(point_count, dims_count)
 initial_centroids_list = np.random.rand(k, dims_count)
@@ -18,7 +19,8 @@ result = cd1.fit(
     dims_count,
     k,
     point_count,
-    max_iter
+    max_iter,
+    eps
 )
 
 print(result)

@@ -110,7 +110,7 @@ void assign_every_point_to_nearest_cluster(point_t* centroids_list, point_t* poi
 void copy_centroids(point_t* dst, point_t* src, int k, int dims_count);
 void reassign_all_centroids(point_t* centroids_list, point_t* points_list, int k, int line_count, int dims_count);
 void kmeans_iteration(point_t* centroids_list, point_t* points_list, int k, int line_count, int dims_count);
-int is_convergence(point_t* prev_centroids_list, point_t* centroids_list, int k, int dims_count);
+int is_convergence(point_t* prev_centroids_list, point_t* centroids_list, int k, int dims_count, double epsilon);
 int write_results_to_file(char* path_to_output, point_t* centroids_list, int k, int dims_count);
 
 /* point_t methods */
@@ -253,12 +253,12 @@ void kmeans_iteration(point_t* centroids_list, point_t* points_list, int k, int 
     reassign_all_centroids                (centroids_list, points_list, k, line_count, dims_count);
 }
 
-int is_convergence(point_t* prev_centroids_list, point_t* centroids_list, int k, int dims_count) {
+int is_convergence(point_t* prev_centroids_list, point_t* centroids_list, int k, int dims_count, double epsilon) {
     int i;
     double dist;
     for (i = 0; i < k; i++) {
         dist = get_dist_between_points(prev_centroids_list[i], centroids_list[i], dims_count);
-        if (dist >= EPSILON) return 0;
+        if (dist >= epsilon) return 0;
     }
     return 1;
 }
@@ -382,26 +382,32 @@ static int allocate_necessary(point_t** centroids_list, point_t** prev_centroids
 }
 
 static void reach_convergence(point_t* centroids_list, point_t* prev_centroids_list, point_t* points_list,
-                            int dims_count, int k, int point_count, int max_iter) {
+                            int dims_count, int k, int point_count, int max_iter, double epsilon) {
     int i;
-    max_iter = 0; /* FIXME */
+    //max_iter = 0; /* FIXME */
     /* perform kmeans algorithm! */
     /* init_centroids(centroids_list, points_list, k, dims_count); */
     for (i = 0; i < max_iter; i++) {
+        printf("Performing convergence iteration:\n");
         copy_centroids(prev_centroids_list, centroids_list, k, dims_count);
+        printf("Copied centroids\n");
         kmeans_iteration(centroids_list, points_list, k, point_count, dims_count);
-        if (is_convergence(prev_centroids_list, centroids_list, k, dims_count)) break;
+        printf("Performed iteration\n");
+        if (is_convergence(prev_centroids_list, centroids_list, k, dims_count, epsilon)) break;
+        printf("Did not break\n");
     }
+    printf("Broke\n");
 }
 
 static point_t* calculate_centroids(PyObject* obj_initial_centroids, PyObject* obj_datapoints,
-                                    int dims_count, int k, int point_count, int max_iter) {
+                                    int dims_count, int k, int point_count, int max_iter, double epsilon) {
     int status;
     point_t *centroids_list, *points_list, *prev_centroids_list;
 
     status = allocate_necessary(&centroids_list, &prev_centroids_list, &points_list,
                         dims_count, k, point_count);
     if (status != STATUS_SUCCESS) {
+        printf("Allocation failed\n");
         return NULL;
     }
 
@@ -410,21 +416,35 @@ static point_t* calculate_centroids(PyObject* obj_initial_centroids, PyObject* o
                     k, point_count,
                     dims_count,
                     centroids_list, points_list);
+
+    printf("Got point lists\n");
     
     reach_convergence(centroids_list, prev_centroids_list, points_list,
-                        dims_count, k, point_count, max_iter);
+                        dims_count, k, point_count, max_iter, epsilon);
     
+    printf("Reached convergence\n");
+
     pointlist_free(&points_list, point_count, dims_count);
     pointlist_free(&prev_centroids_list, k, dims_count);
+
+    printf("Freed point arrays\n");
 
     return centroids_list;
 }
 
 static PyObject* centroids_to_PyObject(point_t* centroids_list, int k, int dims_count) {
+    int i,j;
     double z = 1;
     int n = 2;
 
     printf("Got length %d, dims %d\n", k, dims_count);
+
+    for (i=0; i<k; i++) {
+        for (j=0; j<dims_count; j++) {
+            printf("%.04f,", centroids_list[i].coord[j]);
+        }
+        printf("\n");
+    }
 
     return Py_BuildValue("d", 5.3);
 }
@@ -436,12 +456,13 @@ static PyObject* fit(PyObject *self, PyObject *args) {
     int point_count, dims_count;
     int k;
     int max_iter;
+    double epsilon;
 
-    if (!PyArg_ParseTuple(args, "OOiiii", &obj_initial_centroids, &obj_datapoints, &dims_count, &k, &point_count, &max_iter)) {
+    if (!PyArg_ParseTuple(args, "OOiiiid", &obj_initial_centroids, &obj_datapoints, &dims_count, &k, &point_count, &max_iter, &epsilon)) {
         return NULL;
     }
 
-    centroids_list = calculate_centroids(obj_initial_centroids, obj_datapoints, dims_count, k, point_count, max_iter);
+    centroids_list = calculate_centroids(obj_initial_centroids, obj_datapoints, dims_count, k, point_count, max_iter, epsilon);
     centroids_list_as_pyobject = centroids_to_PyObject(centroids_list, k, dims_count);
     pointlist_free(&centroids_list, k, dims_count);
 
