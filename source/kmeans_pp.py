@@ -1,5 +1,16 @@
-import mykmeanssp
+import os
+import sys
+from typing import List
 import numpy as np
+import pandas as pd
+import mykmeanssp
+
+MSG_ERR_INVALID_INPUT = "Invalid Input!"
+MSG_ERR_GENERIC = "An Error Has Occurred"
+
+EPSILON = 0.001
+INFINITY = float('inf')
+MAX_ITER_UNSPEC = 300
 
 np.random.seed(0)
 
