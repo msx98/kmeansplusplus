@@ -173,6 +173,7 @@ def KmeanAlgorithm_Py(
             eps: float
         ) -> List[List[float]]:
     verify_data(data)
+    #print(data)
     centroids_list = [data[x] for x in initial_centroids_list]
     for i in range(max_iter):
         point_to_centroid_list = _point_to_centroid_list(data, centroids_list)
@@ -185,13 +186,14 @@ def KmeanAlgorithm_Py(
 
 def KmeanAlgorithm_C(
             initial_centroids_list: List[List[float]],
-            data: List[List[float]],
+            datapoints_list: List[List[float]],
             dims_count: int,
             k: int,
             point_count: int,
             max_iter: int,
             eps: float
         ) -> List[List[float]]:
+    print("CALL ME! CALL ME! NO TIME TO HESITATE!")
     return mykmeanssp.fit(
         initial_centroids_list,
         datapoints_list,
@@ -203,8 +205,8 @@ def KmeanAlgorithm_C(
     )
 
 
-def extract_fit_params():
-    k, max_iter, eps, file_name_1, file_name_2 = get_args()
+def extract_fit_params(args_override=None):
+    k, max_iter, eps, file_name_1, file_name_2 = args_override or get_args()
     datapoints_list = _read_data_as_np(file_name_1, file_name_2)
     verify_data(datapoints_list)
     initial_centroids_list = _find_first_centroids(k, datapoints_list)
@@ -223,11 +225,10 @@ def extract_fit_params():
     )
 
 
-def test_equal_to_template_idx(idx:int):
-    file_name_1, file_name_2 = f"input_{idx}_db_1.txt", "input_{idx}_db_2.txt"
-    fit_params = list(extract_fit_params())
+def test_equal_to_template_idx(*args):
+    fit_params = list(extract_fit_params(args))
     desired = None
-    file_expected = file_name_1.split("_")[0].replace("input","output")+"_"+file_name_1.split("_")[1]+".txt"
+    file_expected = args[-1].split("_")[0].replace("input","output")+"_"+args[-1].split("_")[1]+".txt"
     with open(file_expected, 'r') as f:
         s = f.read().split("\n")[:-1]
         s = [x.split(",") for x in s]
@@ -236,20 +237,18 @@ def test_equal_to_template_idx(idx:int):
         desired = np.sort(np.array([[float(y) for y in x] for x in s[1:]]))
     fit_params[0] = initial_centroids_list
     centroids_list_py = KmeanAlgorithm_Py(*fit_params)
-    centroids_list_c = KmeanAlgorithm_C(*fit_params)
-
+    centroids_list_c = mykmeanssp.fit(*fit_params)
     centroids_list_py = np.sort(np.array(centroids_list_py))
     centroids_list_c = np.sort(np.array(centroids_list_c))
-
     dist_py = np.all(np.abs(desired-centroids_list_py) < 0.001)
     assert(dist_py)
     dist_c  = np.all(np.abs(centroids_list_py-centroids_list_c) < 0.001)
     assert(dist_c)
 
 def test_equal_to_templates():
-    test_equal_to_template_idx(1)
-    test_equal_to_template_idx(2)
-    test_equal_to_template_idx(3)
+    test_equal_to_template_idx(3, 333, 0, "input_1_db_1.txt", "input_1_db_2.txt")
+    test_equal_to_template_idx(7, MAX_ITER_UNSPEC, 0, "input_2_db_1.txt", "input_2_db_2.txt")
+    test_equal_to_template_idx(15, 750, 0, "input_3_db_1.txt", "input_3_db_2.txt")
 
 
 def test_py_and_c_equal_files():
@@ -263,11 +262,9 @@ def test_py_and_c_equal_files():
 
 
 def unit_tests():
-    test_equal_to_template_idx(1)
+    test_equal_to_templates()
 
-
-if __name__ == '__main__':
-    # print(_find_first_centroids(2))
+def main():
     fit_params = extract_fit_params()
     (
         initial_centroids_list,
@@ -278,7 +275,11 @@ if __name__ == '__main__':
         max_iter,
         eps
     ) = fit_params
-
     results = mykmeanssp.fit(*fit_params)
     print(','.join([str(x) for x in initial_centroids_list]))
     print('\n'.join([','.join([str(y) for y in x]) for x in results]))
+
+
+if __name__ == '__main__':
+    unit_tests()
+    #main()

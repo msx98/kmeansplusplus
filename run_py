@@ -4,5 +4,5 @@ cp -r source/* debug
 cp -r resources/test_data_2/* debug
 cd debug
 python3 kmeans_pp.py 3 333 0 input_1_db_1.txt input_1_db_2.txt
-python3 kmeans_pp.py 7 0 input_2_db_1.txt input_2_db_2.txt
-python3 kmeans_pp.py 15 750 0 input_3_db_1.txt input_3_db_2.txt
+#python3 kmeans_pp.py 7 0 input_2_db_1.txt input_2_db_2.txt
+#python3 kmeans_pp.py 15 750 0 input_3_db_1.txt input_3_db_2.txt
