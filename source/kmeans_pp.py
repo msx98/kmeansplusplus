@@ -184,26 +184,6 @@ def KmeanAlgorithm_Py(
             return centroids_list
     return centroids_list
 
-def KmeanAlgorithm_C(
-            initial_centroids_list: List[List[float]],
-            datapoints_list: List[List[float]],
-            dims_count: int,
-            k: int,
-            point_count: int,
-            max_iter: int,
-            eps: float
-        ) -> List[List[float]]:
-    print("CALL ME! CALL ME! NO TIME TO HESITATE!")
-    return mykmeanssp.fit(
-        initial_centroids_list,
-        datapoints_list,
-        dims_count,
-        k,
-        point_count,
-        max_iter,
-        eps
-    )
-
 
 def extract_fit_params(args_override=None):
     k, max_iter, eps, file_name_1, file_name_2 = args_override or get_args()
@@ -254,7 +234,7 @@ def test_equal_to_templates():
 def test_py_and_c_equal_files():
     fit_params = list(extract_fit_params())
     centroids_list_py = KmeanAlgorithm_Py(*fit_params)
-    centroids_list_c = KmeanAlgorithm_C(*fit_params)
+    centroids_list_c = mykmeanssp.fit(*fit_params)
     centroids_list_py = np.sort(np.array(centroids_list_py))
     centroids_list_c = np.sort(np.array(centroids_list_c))
     dist_c  = np.all(np.abs(centroids_list_py-centroids_list_c) < 0.001)
@@ -262,7 +242,7 @@ def test_py_and_c_equal_files():
 
 
 def unit_tests():
-    test_equal_to_templates()
+    test_py_and_c_equal_files()
 
 def main():
     fit_params = extract_fit_params()
