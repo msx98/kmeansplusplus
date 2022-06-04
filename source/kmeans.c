@@ -111,9 +111,6 @@ void copy_centroids(point_t* dst, point_t* src, int k, int dims_count);
 void reassign_all_centroids(point_t* centroids_list, point_t* points_list, int k, int line_count, int dims_count);
 void kmeans_iteration(point_t* centroids_list, point_t* points_list, int k, int line_count, int dims_count);
 int is_convergence(point_t* prev_centroids_list, point_t* centroids_list, int k, int dims_count, double epsilon);
-int write_results_to_file(char* path_to_output, point_t* centroids_list, int k, int dims_count);
-
-/* point_t methods */
 double get_dist_between_points(point_t point_1, point_t point_2, int dims_count);
 double get_abs_point(point_t point, int dims_count);
 
@@ -263,85 +260,6 @@ int is_convergence(point_t* prev_centroids_list, point_t* centroids_list, int k,
     return 1;
 }
 
-int write_results_to_file(char* path_to_output, point_t* centroids_list, int k, int dims_count) {
-    FILE* fh;
-    int i, j;
-
-#if defined(WIN32) || defined(_WIN32) || defined(__WIN32) && !defined(__CYGWIN__)
-    errno_t err;
-    err = fopen_s(&fh, path_to_output, "wb");
-    if (err != RESULT_FOPEN_SUCCESS) {
-        return STATUS_ERROR_FOPEN;
-    }
-#else
-    fh = fopen(path_to_output, "wb");
-    if (fh == NULL) {
-        return STATUS_ERROR_FOPEN;
-    }
-#endif
-
-
-    for (i = 0; i < k; i++) {
-        for (j = 0; j < dims_count-1; j++)
-            fprintf(fh, "%.4f,", centroids_list[i].coord[j]);
-        fprintf(fh, "%.4f\n", centroids_list[i].coord[dims_count - 1]);
-    }
-
-    fclose(fh);
-    return STATUS_SUCCESS;
-}
-
-char* print_centroids_to_buf(point_t* centroids_list, int k, int dims_count) {
-    char* buf;
-    char* tmp;
-    int i, j;
-    size_t sizeof_buf;
-
-    sizeof_buf = 0;
-    for (i = 0; i < k; i++) {
-        for (j = 0; j < dims_count - 1; j++)
-            sizeof_buf += snprintf(NULL, 0, "%.4f,", centroids_list[i].coord[j]);
-        sizeof_buf += snprintf(NULL, 0, "%.4f\n", centroids_list[i].coord[j]);
-    }
-
-    buf = malloc(sizeof_buf);
-    printf("Buf size is %d\n", sizeof_buf);
-    if (!buf) return NULL;
-
-    for (i = 0; i < k; i++) {
-        for (j = 0; j < dims_count - 1; j++)
-            printf("%.4f,", centroids_list[i].coord[j]);
-        if (i<(k-1)) printf("%.4f\n", centroids_list[i].coord[j]);
-    }
-    printf("%.4f", centroids_list[k-1].coord[dims_count-1]);
-    buf[sizeof_buf-sizeof(char)*1] = 0;
-
-    return buf;
-}
-
-void print_centroids(point_t* centroids_list, int k, int dims_count) {
-    /*int i, j;
-    for (i = 0; i < k; i++) {
-        for (j = 0; j < dims_count - 1; j++)
-            printf("%.4f,", centroids_list[i].coord[j]);
-        printf("%.4f\n", centroids_list[i].coord[dims_count - 1]);
-    }
-    printf("\n");*/
-    char* buf = print_centroids_to_buf(centroids_list, k, dims_count);
-    if (!buf) return;
-    printf("Printing buf:\n");
-    printf("%s\n", buf);
-    printf("Printed buf\n");
-    free(buf);
-}
-
-
-
-/*xxxxxxxxxxxxxxxxxxxxxxxxxxxx//
-//  Method Definitions - END  //
-//xxxxxxxxxxxxxxxxxxxxxxxxxxxx*/
-
-
 static int set_points_to_dst(PyObject* obj, int point_count, int dims_count, point_t* dst) {
     PyObject *points_iter, *next_obj, *coords_iter, *next_coord;
     int i, j;
@@ -475,6 +393,10 @@ static PyObject* centroids_to_PyObject(point_t* centroids_list, int k, int dims_
 
     return list;
 }
+
+/*xxxxxxxxxxxxxxxxxxxxxxxxxxxx//
+//  Method Definitions - END  //
+//xxxxxxxxxxxxxxxxxxxxxxxxxxxx*/
 
 static PyObject* fit(PyObject *self, PyObject *args) {
     point_t *centroids_list;
