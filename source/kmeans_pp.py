@@ -240,9 +240,40 @@ def test_py_and_c_equal_files():
     dist_c  = np.all(np.abs(centroids_list_py-centroids_list_c) < 0.001)
     assert(dist_c)
 
+def test_py_and_c_equal_random():
+    def randomize_fit_params():
+        k, max_iter, eps = np.random.randint(2, 10), np.random.randint(100, 300), float(np.random.rand(1,1))/100
+        point_count = np.random.randint(50, 200)
+        dims_count = np.random.randint(3,6)
+        datapoints_list = list(np.random.rand(point_count, dims_count))
+        a = np.array(range(point_count))[...,None]
+        datapoints_list = np.hstack((a, datapoints_list))
+        initial_centroids_list = _find_first_centroids(k, datapoints_list)
+        datapoints_list = sorted(datapoints_list, key=lambda x: float(x[0]))
+        datapoints_list = [x[1:] for x in datapoints_list]
+
+        return (
+            initial_centroids_list,
+            datapoints_list,
+            dims_count,
+            k,
+            point_count,
+            max_iter,
+            eps
+        )
+    fit_params = list(randomize_fit_params())
+    centroids_list_py = KmeanAlgorithm_Py(*fit_params)
+    centroids_list_c = mykmeanssp.fit(*fit_params)
+    centroids_list_py = np.sort(np.array(centroids_list_py))
+    centroids_list_c = np.sort(np.array(centroids_list_c))
+    dist_c  = np.all(np.abs(centroids_list_py-centroids_list_c) < 0.001)
+    assert(dist_c)
 
 def unit_tests():
     test_py_and_c_equal_files()
+    for i in range(1000):
+        test_py_and_c_equal_random()
+        print(f"Completed {i+1}")
 
 def main():
     fit_params = extract_fit_params()
