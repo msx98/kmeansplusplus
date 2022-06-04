@@ -254,7 +254,6 @@ if __name__ == '__main__':
         max_iter,
         eps
     )
-    centroids_list_c = [[y for y in x] for x in centroids_list_c]
     print("C output:")
     print(centroids_list_c)
 
