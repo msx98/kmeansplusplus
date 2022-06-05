@@ -14,6 +14,7 @@ MAX_ITER_UNSPEC = 300
 
 
 def main():
+    np.random.seed(0)
     fit_params = extract_fit_params()
     initial_centroids_list = fit_params[0]
     results = mykmeanssp.fit(*fit_params)
