@@ -1,0 +1,6 @@
+cd ~/repos/softproj_2
+cp -r scripts/* debug
+cp -r source/* debug
+cp -r resources/test_data_2/* debug
+cd debug
+python3 bonus.py
