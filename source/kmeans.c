@@ -405,7 +405,8 @@ static PyObject* centroids_to_PyObject(point_t* centroids_list, int k, int dims_
     for (i=0; i<k; i++) {
         coords = PyList_New(dims_count);
         for (j=0; j<dims_count; j++) {
-            single_coord = Py_BuildValue("d", round(10000*centroids_list[i].coord[j])/10000);
+            //single_coord = Py_BuildValue("d", round(10000*centroids_list[i].coord[j])/10000);
+            single_coord = Py_BuildValue("d", centroids_list[i].coord[j]);
             /*printf("%.04f", centroids_list[i].coord[j]);*/
             PyList_SetItem(coords, j, single_coord);
         }
