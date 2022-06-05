@@ -1,0 +1,8 @@
+cd ~/repos/softproj_2
+#rm -rf debug/*
+cp -r scripts/* debug
+cp -r source/* debug
+cp -r resources/test_data_2/* debug
+cd debug
+#./build
+python3 tests.py

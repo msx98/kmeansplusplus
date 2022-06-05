@@ -2,6 +2,7 @@ import os
 import sys
 from math import sqrt
 from typing import List, Dict, Set
+import numpy as np
 
 MSG_ERR_INVALID_INPUT = "Invalid Input!"
 MSG_ERR_GENERIC       = "An Error Has Occurred"
@@ -13,7 +14,7 @@ MAX_ITER_UNSPEC = 200
 
 def main():
     k, max_iter, path_to_input, path_to_output = get_args()
-    KmeanAlgorithm(k, max_iter, path_to_input, path_to_output)
+    KmeansAlgorithm(k, max_iter, path_to_input, path_to_output)
 
 
 def get_args():
@@ -34,7 +35,7 @@ def get_args():
         exit(1)
 
 
-def KmeanAlgorithm(K: int, max_iter=200, input_filename: str = None, output_filename: str = None) -> str:
+def KmeansAlgorithm_Files(K: int, max_iter=200, input_filename: str = None, output_filename: str = None) -> str:
     file_lines = None
     data = _read_data(input_filename)
     verify_data(data)
@@ -49,6 +50,28 @@ def KmeanAlgorithm(K: int, max_iter=200, input_filename: str = None, output_file
             # print("reach convergence")
             return _write_centroid_to_text(output_filename, centroids_list)
     return _write_centroid_to_text(output_filename, centroids_list)
+
+
+def KmeansAlgorithm(
+            initial_centroids_list: List[List[float]],
+            data: List[List[float]],
+            dims_count: int,
+            k: int,
+            point_count: int,
+            max_iter: int,
+            eps: float
+        ) -> List[List[float]]:
+    verify_data(data)
+    #print(data)
+    centroids_list = [data[x] for x in initial_centroids_list]
+    for i in range(max_iter):
+        point_to_centroid_list = _point_to_centroid_list(data, centroids_list)
+        previous_centroids_list = centroids_list
+        centroids_list = _update_centroid(centroids_list, data, point_to_centroid_list)
+        if _is_convergence(previous_centroids_list, centroids_list, eps):
+            # print("reach convergence")
+            return centroids_list
+    return centroids_list
 
 
 def _read_data(input_filename) -> List[List[float]]:
@@ -110,7 +133,7 @@ def _update_centroid(centroids: List[List[float]], data: List[List[float]],
     for centroid in centroids:
         new_updated_centroid = []
         # creating the centroid cluster
-        centroid_cluster = [data[i] for i in range(len(data)) if mapping_point_to_centroid[i] == centroid]
+        centroid_cluster = [data[i] for i in range(len(data)) if np.all(mapping_point_to_centroid[i] == centroid)]
         cluster_size = len(centroid_cluster)
         for i in zip(*centroid_cluster):
             cluster_sum = sum(i)
@@ -120,10 +143,10 @@ def _update_centroid(centroids: List[List[float]], data: List[List[float]],
     return updated_centroid_list
 
 
-def _is_convergence(prev_centroids: List[List[float]], curr_centroids: List[List[float]]) -> bool:
+def _is_convergence(prev_centroids: List[List[float]], curr_centroids: List[List[float]], eps:float=EPSILON) -> bool:
     for i in range(len(prev_centroids)):
         dis_between_2_centroids = _distance_between_point_and_centroid(prev_centroids[i], curr_centroids[i])
-        if dis_between_2_centroids > EPSILON:
+        if dis_between_2_centroids > eps:
             return False
     # if the difference between all the centroids have changed less than epsilon -> stop.
     return True
@@ -141,8 +164,9 @@ def _format_point(point):
 
 #try: os.mkdir("resources/out")
 #except: pass
-#KmeanAlgorithm(3, 600, "resources/input_1.txt", "resources/out/output_1.txt")
-#KmeanAlgorithm(7, 200, "resources/input_2.txt", "resources/out/output_2.txt")
-#KmeanAlgorithm(15, 300, "resources/input_3.txt", "resources/out/output_3.txt")
+#KmeansAlgorithm_Files(3, 600, "resources/input_1.txt", "resources/out/output_1.txt")
+#KmeansAlgorithm_Files(7, 200, "resources/input_2.txt", "resources/out/output_2.txt")
+#KmeansAlgorithm_Files(15, 300, "resources/input_3.txt", "resources/out/output_3.txt")
 
-main()
+if __name__ == "main":
+    main()

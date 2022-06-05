@@ -37,6 +37,7 @@ result = mykmeanssp.fit(
 
 def get_args():
     args = sys.argv
+    print(f"Inner sys argv: {sys.argv}")
     if args[0] in ["python", "python3", "python.exe", "python3.exe"]:
         args = args[1:]
     if args[0][-3:] == ".py":
@@ -49,6 +50,8 @@ def get_args():
         else:
             raise Exception()
     except:
+        print(args)
+
         print(MSG_ERR_INVALID_INPUT)
         exit(1)
 
@@ -75,7 +78,7 @@ def _read_data_as_np(file_name1: str, file_name2: str) -> np.array:
     return data
 
 
-def _find_first_centroids(K: int, data: np.array) -> List[int]:
+def KmeansPlusPlus(K: int, data: np.array) -> List[int]:
     number_of_points_in_data_N = len(data)  # the number of rows(points) in data
     # todo check for error from last time
     if K >= number_of_points_in_data_N:
@@ -104,6 +107,7 @@ def _find_first_centroids(K: int, data: np.array) -> List[int]:
 
     return centroid_list
 
+
 # this function verifies that all points have the same dimension
 # and also that we have a nonzero number of points
 def verify_data(data: List[List[float]]):
@@ -116,80 +120,15 @@ def verify_data(data: List[List[float]]):
             print(MSG_ERR_GENERIC)
             exit(1)
 
-# A function that calculates the distance between 2 points.
-def _distance_between_point_and_centroid(point: List[float], centroid: List[float]) -> float:
-    distance = 0
-    for i in range(len(point)):
-        distance += (point[i] - centroid[i]) ** 2
-    return distance ** 0.5
-
-
-def _point_to_centroid_list(data: List[List[float]], centroids_list: List[List[float]]) -> List[List[float]]:
-    mapping_centroid_to_each_point = []
-    for index, point in enumerate(data):
-        minimum_distance = sys.float_info.max  # max value in python
-        curr_centroid = None
-        for centroid in centroids_list:
-            curr_distance = _distance_between_point_and_centroid(point, centroid)
-            if curr_distance < minimum_distance:
-                minimum_distance = curr_distance
-                curr_centroid = centroid
-        mapping_centroid_to_each_point.append(curr_centroid)
-
-    return mapping_centroid_to_each_point
-
-
-def _update_centroid(centroids: List[List[float]], data: List[List[float]],
-                     mapping_point_to_centroid: List[List[float]]) -> List[List[float]]:
-    updated_centroid_list = []
-    for centroid in centroids:
-        new_updated_centroid = []
-        # creating the centroid cluster
-        centroid_cluster = [data[i] for i in range(len(data)) if np.all(mapping_point_to_centroid[i] == centroid)]
-        cluster_size = len(centroid_cluster)
-        for i in zip(*centroid_cluster):
-            cluster_sum = sum(i)
-            new_updated_centroid.append(round(cluster_sum / cluster_size, 4))
-        updated_centroid_list.append(new_updated_centroid)
-
-    return updated_centroid_list
-
-
-def _is_convergence(prev_centroids: List[List[float]], curr_centroids: List[List[float]], eps: float) -> bool:
-    for i in range(len(prev_centroids)):
-        dis_between_2_centroids = _distance_between_point_and_centroid(prev_centroids[i], curr_centroids[i])
-        if dis_between_2_centroids > eps:
-            return False
-    # if the difference between all the centroids have changed less than epsilon -> stop.
-    return True
-
-def KmeanAlgorithm_Py(
-            initial_centroids_list: List[List[float]],
-            data: List[List[float]],
-            dims_count: int,
-            k: int,
-            point_count: int,
-            max_iter: int,
-            eps: float
-        ) -> List[List[float]]:
-    verify_data(data)
-    #print(data)
-    centroids_list = [data[x] for x in initial_centroids_list]
-    for i in range(max_iter):
-        point_to_centroid_list = _point_to_centroid_list(data, centroids_list)
-        previous_centroids_list = centroids_list
-        centroids_list = _update_centroid(centroids_list, data, point_to_centroid_list)
-        if _is_convergence(previous_centroids_list, centroids_list, eps):
-            # print("reach convergence")
-            return centroids_list
-    return centroids_list
-
 
 def extract_fit_params(args_override=None):
     k, max_iter, eps, file_name_1, file_name_2 = args_override or get_args()
+    if not (validate_input_files(file_name_1, file_name_2)):
+        print(MSG_ERR_INVALID_INPUT)
+        raise Exception()
     datapoints_list = _read_data_as_np(file_name_1, file_name_2)
     verify_data(datapoints_list)
-    initial_centroids_list = _find_first_centroids(k, datapoints_list)
+    initial_centroids_list = KmeansPlusPlus(k, datapoints_list)
     datapoints_list = sorted(datapoints_list, key=lambda x: float(x[0]))
     datapoints_list = [x[1:] for x in datapoints_list]
     point_count = len(datapoints_list)
@@ -205,92 +144,14 @@ def extract_fit_params(args_override=None):
     )
 
 
-def test_equal_to_template_idx(*args):
-    fit_params = list(extract_fit_params(args))
-    desired = None
-    file_expected = args[-1].split("_")[0].replace("input","output")+"_"+args[-1].split("_")[1]+".txt"
-    with open(file_expected, 'r') as f:
-        s = f.read().split("\n")[:-1]
-        s = [x.split(",") for x in s]
-        s[0] = [int(y) for y in s[0]]
-        initial_centroids_list = s[0]
-        desired = np.sort(np.array([[float(y) for y in x] for x in s[1:]]))
-    fit_params[0] = initial_centroids_list
-    centroids_list_py = KmeanAlgorithm_Py(*fit_params)
-    centroids_list_c = mykmeanssp.fit(*fit_params)
-    centroids_list_py = np.sort(np.array(centroids_list_py))
-    centroids_list_c = np.sort(np.array(centroids_list_c))
-    dist_py = np.all(np.abs(desired-centroids_list_py) < 0.001)
-    assert(dist_py)
-    dist_c  = np.all(np.abs(centroids_list_py-centroids_list_c) < 0.001)
-    assert(dist_c)
-
-def test_equal_to_templates():
-    test_equal_to_template_idx(3, 333, 0, "input_1_db_1.txt", "input_1_db_2.txt")
-    test_equal_to_template_idx(7, MAX_ITER_UNSPEC, 0, "input_2_db_1.txt", "input_2_db_2.txt")
-    test_equal_to_template_idx(15, 750, 0, "input_3_db_1.txt", "input_3_db_2.txt")
-
-
-def test_py_and_c_equal_files():
-    fit_params = list(extract_fit_params())
-    centroids_list_py = KmeanAlgorithm_Py(*fit_params)
-    centroids_list_c = mykmeanssp.fit(*fit_params)
-    centroids_list_py = np.sort(np.array(centroids_list_py))
-    centroids_list_c = np.sort(np.array(centroids_list_c))
-    dist_c  = np.all(np.abs(centroids_list_py-centroids_list_c) < 0.001)
-    assert(dist_c)
-
-def test_py_and_c_equal_random():
-    def randomize_fit_params():
-        k, max_iter, eps = np.random.randint(2, 10), np.random.randint(100, 300), float(np.random.rand(1,1))/100
-        point_count = np.random.randint(50, 200)
-        dims_count = np.random.randint(3,6)
-        datapoints_list = list(np.random.rand(point_count, dims_count))
-        a = np.array(range(point_count))[...,None]
-        datapoints_list = np.hstack((a, datapoints_list))
-        initial_centroids_list = _find_first_centroids(k, datapoints_list)
-        datapoints_list = sorted(datapoints_list, key=lambda x: float(x[0]))
-        datapoints_list = [x[1:] for x in datapoints_list]
-
-        return (
-            initial_centroids_list,
-            datapoints_list,
-            dims_count,
-            k,
-            point_count,
-            max_iter,
-            eps
-        )
-    fit_params = list(randomize_fit_params())
-    centroids_list_py = KmeanAlgorithm_Py(*fit_params)
-    centroids_list_c = mykmeanssp.fit(*fit_params)
-    centroids_list_py = np.sort(np.array(centroids_list_py))
-    centroids_list_c = np.sort(np.array(centroids_list_c))
-    dist_c  = np.all(np.abs(centroids_list_py-centroids_list_c) < 0.001)
-    assert(dist_c)
-
-def unit_tests():
-    test_py_and_c_equal_files()
-    for i in range(1000):
-        test_py_and_c_equal_random()
-        print(f"Completed {i+1}")
-
 def main():
     fit_params = extract_fit_params()
-    (
-        initial_centroids_list,
-        datapoints_list,
-        dims_count,
-        k,
-        point_count,
-        max_iter,
-        eps
-    ) = fit_params
+    initial_centroids_list = fit_params[0]
     results = mykmeanssp.fit(*fit_params)
     print(','.join([str(x) for x in initial_centroids_list]))
     print('\n'.join([','.join([str(y) for y in x]) for x in results]))
 
 
 if __name__ == '__main__':
-    unit_tests()
-    #main()
+    print("I am main")
+    main()
