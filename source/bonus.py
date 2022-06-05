@@ -31,6 +31,7 @@ def main():
             arrowprops=dict(arrowstyle="->", linestyle="--"))
     plt.xlabel("k")
     plt.ylabel("Average Dispersion")
+    plt.title("Elbow Method for selection of optimal \"K\" clusters")
     fig.savefig('elbow.png', dpi=fig.dpi)
 
 
