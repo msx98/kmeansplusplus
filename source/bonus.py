@@ -20,7 +20,7 @@ def main():
         centroids = result.cluster_centers_
         inertia.append(calculate_inertia(centroids, points))
     k_elbow = find_elbow(inertia) + 2
-    k_elbow_inertia = inertia[k_elbow-1]
+    k_elbow_inertia = inertia[k_elbow-2]
     print(k_elbow)
     x = [i for i in range(2, 11)]
     y = inertia
