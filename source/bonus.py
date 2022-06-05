@@ -11,7 +11,7 @@ import math
 def main():
     points = load_iris()['data']
     inertia = []
-    for k in range(1, 11):
+    for k in range(2, 11):
         result = sklearn.cluster.KMeans(
             n_clusters=k,
             init="k-means++",
@@ -19,10 +19,10 @@ def main():
         ).fit(points)
         centroids = result.cluster_centers_
         inertia.append(calculate_inertia(centroids, points))
-    k_elbow = find_elbow(inertia) + 1
+    k_elbow = find_elbow(inertia) + 2
     k_elbow_inertia = inertia[k_elbow-1]
     print(k_elbow)
-    x = [i for i in range(1, 11)]
+    x = [i for i in range(2, 11)]
     y = inertia
     fig = plt.figure()
     plt.plot(x,y)
