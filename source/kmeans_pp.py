@@ -28,9 +28,10 @@ def extract_fit_params():
         raise Exception()
     datapoints_list = _read_data_as_np(file_name_1, file_name_2)
     verify_data(datapoints_list)
-    initial_centroids_list = KmeansPlusPlus(k, datapoints_list)
-    datapoints_list = sorted(datapoints_list, key=lambda x: float(x[0]))
-    datapoints_list = [x[1:] for x in datapoints_list]
+    if k >= len(datapoints_list):
+        print(MSG_ERR_INVALID_INPUT)
+        raise Exception()
+    initial_centroids_list = KMeansPlusPlus(k, datapoints_list)
     point_count = len(datapoints_list)
     dims_count = len(datapoints_list[0])
     return (
@@ -43,48 +44,36 @@ def extract_fit_params():
         eps
     )
 
+def KMeansPlusPlus(k: int, data: np.array) -> List[int]:
+    data = np.copy(data)
+    N = len(data)
+    dims = len(data[0])
 
-def KmeansPlusPlus(K: int, data: np.array) -> List[int]:
-    number_of_points_in_data_N = len(data)  # the number of rows(points) in data
-    # todo check for error from last time
-    if K >= number_of_points_in_data_N:
-        print(MSG_ERR_INVALID_INPUT)
-        raise Exception()
-    centroid_list = [int(data[0][0])]
+    D = np.ones(N)*np.inf
+    P = np.ones(N)/N
+    centroids_list = np.ones((k, dims))*np.inf
+    centroids_choice = np.ones(k, dtype=np.uint64)
 
-    min_distance_vector = np.zeros(number_of_points_in_data_N)
-    probability_vector = np.zeros(number_of_points_in_data_N)
-
-    for i in range(1, K):
-        for point in data:
-            minimum_distance = np.inf
-            for index in centroid_list:
-                centroid_index = np.where(data[:, 0] == index)
-                centroid = data[centroid_index][0]
-                current_distance = np.sqrt(np.sum((point[1:] - centroid[1:]) ** 2))
-                minimum_distance = min(current_distance, minimum_distance)
-            min_distance_vector[int(point[0])] = minimum_distance
-        mini_distance_sum = sum(min_distance_vector)  # sum all args in min_disance_vector (denominator)
-        probability_vector = min_distance_vector / mini_distance_sum  # calculate the probability for each
-        # todo np.max or this calcualte (choose random or the maximum) 
-        random_prob_choice = np.random.choice(probability_vector)
-        next_centroid_index = int(np.where(probability_vector == random_prob_choice)[0])
-        centroid_list.append(next_centroid_index)
-
-    return centroid_list
+    for i in range(k):
+        centroids_choice[i] = np.random.choice(N, p=P)
+        centroids_list[i] = data[int(centroids_choice[i])]
+        for l in range(N):
+            D[l] = np.min(np.sum(np.square(data[l]-centroids_list), axis=1))
+        P = D/np.sum(D)
+    return centroids_choice
 
 
 def _read_data_as_np(file_name1: str, file_name2: str) -> np.array:
-    # creating the path of the file that we read.
-    # getcwd return the path of the current directory
     path_file1 = os.path.join(os.getcwd(), file_name1)
     path_file2 = os.path.join(os.getcwd(), file_name2)
-
     data_frame_1 = pd.read_csv(path_file1, header=None).rename({0: "index"}, axis=1)
     data_frame_2 = pd.read_csv(path_file2, header=None).rename({0: "index"}, axis=1)
-
-    joined_data_frame = data_frame_1.join(data_frame_2.set_index('index'), on='index', lsuffix='from_second_file ',
-                                          how='left')
+    joined_data_frame = data_frame_1.join(
+                                        data_frame_2.set_index('index'),
+                                        on='index', lsuffix='from_second_file ',
+                                        how='left')
+    joined_data_frame = joined_data_frame.sort_values('index')
+    joined_data_frame.drop('index', inplace=True, axis=1)
     data = joined_data_frame.to_numpy()
     return data
 

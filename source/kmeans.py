@@ -62,7 +62,6 @@ def KmeansAlgorithm(
             eps: float
         ) -> List[List[float]]:
     verify_data(data)
-    #print(data)
     centroids_list = [data[x] for x in initial_centroids_list]
     for i in range(max_iter):
         point_to_centroid_list = _point_to_centroid_list(data, centroids_list)
@@ -70,8 +69,8 @@ def KmeansAlgorithm(
         centroids_list = _update_centroid(centroids_list, data, point_to_centroid_list)
         if _is_convergence(previous_centroids_list, centroids_list, eps):
             # print("reach convergence")
-            return centroids_list
-    return centroids_list
+            return np.around(centroids_list,4)
+    return np.around(centroids_list,4)
 
 
 def _read_data(input_filename) -> List[List[float]]:
@@ -137,7 +136,7 @@ def _update_centroid(centroids: List[List[float]], data: List[List[float]],
         cluster_size = len(centroid_cluster)
         for i in zip(*centroid_cluster):
             cluster_sum = sum(i)
-            new_updated_centroid.append(round(cluster_sum / cluster_size, 4))
+            new_updated_centroid.append(cluster_sum / cluster_size)
         updated_centroid_list.append(new_updated_centroid)
 
     return updated_centroid_list
