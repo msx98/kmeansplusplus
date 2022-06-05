@@ -73,7 +73,7 @@ def _read_data_as_np(file_name1: str, file_name2: str) -> np.array:
     joined_data_frame = data_frame_1.join(
                                         data_frame_2.set_index('index'),
                                         on='index', lsuffix='from_second_file ',
-                                        how='left')
+                                        how='inner')
     joined_data_frame = joined_data_frame.sort_values('index')
     joined_data_frame.drop('index', inplace=True, axis=1)
     data = joined_data_frame.to_numpy()
