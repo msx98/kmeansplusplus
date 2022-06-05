@@ -1,3 +1,4 @@
+rm *assignment*.zip
 mkdir submission
 cp source/setup.py submission
 cp source/kmeans.c submission
@@ -6,3 +7,6 @@ cp source/bonus.py submission
 mv submission REDACTED_REDACTED_assignment2
 zip -r REDACTED_REDACTED_assignment2.zip REDACTED_REDACTED_assignment2
 rm -rf REDACTED_REDACTED_assignment2
+git add .
+git commit -m"Update submission"
+git push

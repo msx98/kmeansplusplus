@@ -44,6 +44,7 @@ def extract_fit_params():
         eps
     )
 
+
 def KMeansPlusPlus(k: int, data: np.array) -> List[int]:
     data = np.copy(data)
     N = len(data)
