@@ -87,7 +87,7 @@ pointlist_t* pointlist_init(int dims) {
     free((*list));
 }*/
 
-void pointlist_free(point_t** list, int count, int dims) {
+void pointlist_free(point_t** list, int count) {
     int i;
     for (i=0; i<count; i++) {
         if((*list)[i].coord) free((*list)[i].coord);
@@ -285,7 +285,7 @@ static int set_centroids_to_dst(PyObject* obj, point_t* points_list, int dims_co
     return 0;
 }
 
-static int set_points_to_dst(PyObject* obj, int point_count, int dims_count, point_t* dst) {
+static int set_points_to_dst(PyObject* obj, point_t* dst) {
     PyObject *points_iter, *next_obj, *coords_iter, *next_coord;
     int i, j;
     
@@ -333,15 +333,15 @@ static int allocate_necessary(point_t** centroids_list, point_t** prev_centroids
     /* allocate memory for centroids */
     status = allocate_centroids(centroids_list, k, dims_count);
     if (status != STATUS_SUCCESS) {
-        pointlist_free(points_list, point_count, dims_count);
+        pointlist_free(points_list, point_count);
         return status;
     }
 
     /* allocate memory for old copy of centroids (needed to calculate convergence) */
     status = allocate_centroids(prev_centroids_list, k, dims_count);
     if (status != STATUS_SUCCESS) {
-        pointlist_free(points_list, point_count, dims_count);
-        pointlist_free(centroids_list, k, dims_count);
+        pointlist_free(points_list, point_count);
+        pointlist_free(centroids_list, k);
         return status;
     }
 
@@ -351,7 +351,6 @@ static int allocate_necessary(point_t** centroids_list, point_t** prev_centroids
 static void reach_convergence(point_t* centroids_list, point_t* prev_centroids_list, point_t* points_list,
                             int dims_count, int k, int point_count, int max_iter, double epsilon) {
     int i;
-    //max_iter = 0; /* FIXME */
     /* perform kmeans algorithm! */
     /* init_centroids(centroids_list, points_list, k, dims_count); */
     for (i = 0; i < max_iter; i++) {
@@ -373,14 +372,14 @@ static point_t* calculate_centroids(PyObject* obj_initial_centroids, PyObject* o
     }
 
     /* assign points from py objs */
-    set_points_to_dst(obj_datapoints, point_count, dims_count, points_list);
+    set_points_to_dst(obj_datapoints, points_list);
     set_centroids_to_dst(obj_initial_centroids, points_list, dims_count, centroids_list);
     
     reach_convergence(centroids_list, prev_centroids_list, points_list,
                         dims_count, k, point_count, max_iter, epsilon);
 
-    pointlist_free(&points_list, point_count, dims_count);
-    pointlist_free(&prev_centroids_list, k, dims_count);
+    pointlist_free(&points_list, point_count);
+    pointlist_free(&prev_centroids_list, k);
 
     return centroids_list;
 }
@@ -393,7 +392,7 @@ static PyObject* centroids_to_PyObject(point_t* centroids_list, int k, int dims_
     for (i=0; i<k; i++) {
         coords = PyList_New(dims_count);
         for (j=0; j<dims_count; j++) {
-            //single_coord = Py_BuildValue("d", round(10000*centroids_list[i].coord[j])/10000);
+            /* FIXME - single_coord = Py_BuildValue("d", round(10000*centroids_list[i].coord[j])/10000); */
             single_coord = Py_BuildValue("d", centroids_list[i].coord[j]);
             /*printf("%.04f", centroids_list[i].coord[j]);*/
             PyList_SetItem(coords, j, single_coord);
@@ -418,6 +417,8 @@ static PyObject* fit(PyObject *self, PyObject *args) {
     int max_iter;
     double epsilon;
 
+    if (!self) return NULL;
+
     if (!PyArg_ParseTuple(args, "OOiiiid", &obj_initial_centroids, &obj_datapoints, &dims_count, &k, &point_count, &max_iter, &epsilon)) {
         return NULL;
     }
@@ -425,7 +426,7 @@ static PyObject* fit(PyObject *self, PyObject *args) {
     centroids_list = calculate_centroids(obj_initial_centroids, obj_datapoints, dims_count, k, point_count, max_iter, epsilon);
     if (!centroids_list) return PyErr_NoMemory();
     centroids_list_as_pyobject = centroids_to_PyObject(centroids_list, k, dims_count);
-    pointlist_free(&centroids_list, k, dims_count);
+    pointlist_free(&centroids_list, k);
 
     return centroids_list_as_pyobject;
 

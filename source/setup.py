@@ -1,4 +1,5 @@
 from setuptools import setup, find_packages, Extension
+import sysconfig
 
 """
     Calling
@@ -21,16 +22,18 @@ from setuptools import setup, find_packages, Extension
     at docs.python.org for more information.
 """
 
+extra_compile_args = sysconfig.get_config_var('CFLAGS').split()
+extra_compile_args += ["-Wall", "-Werror", "-pedantic-errors"]
+
 # setup() parameters - https://packaging.python.org/guides/distributing-packages-using-setuptools/
 setup(
-    name='capi_demo1',
-    version='0.1.0',
-    author="Example Author",
-    author_email="author@example.com",
-    description="A sample C-API",
+    name='KMeansAlgorithm',
+    version='6.9.4.2.0',
+    author="Spongebob Squarepants",
+    author_email="a@xb.ax",
+    description="This is an implementation of the KMeans algorithm",
     install_requires=['invoke'],
-    packages=find_packages(),  # find_packages(where='.', exclude=())
-                               #    Return a list of all Python packages found within directory 'where'
+    packages=find_packages(),
     license='GPL-2',
     # See https://pypi.python.org/pypi?%3Aaction=list_classifiers
     classifiers=[
@@ -52,6 +55,7 @@ setup(
             'mykmeanssp',
             # the files to compile into our module relative to ``setup.py``
             ['kmeans.c'],
+            extra_compile_args=extra_compile_args,
         ),
     ]
 )
