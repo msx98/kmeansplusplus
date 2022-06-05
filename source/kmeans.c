@@ -262,7 +262,7 @@ int is_convergence(point_t* prev_centroids_list, point_t* centroids_list, int k,
 }
 
 static int set_centroids_to_dst(PyObject* obj, point_t* points_list, int dims_count, point_t* dst) {
-    PyObject *centroids_iter, *next_obj, *coords_iter, *next_coord;
+    PyObject *centroids_iter, *next_obj;
     int i, j;
     int idx;
 
@@ -321,18 +321,6 @@ static int set_points_to_dst(PyObject* obj, int point_count, int dims_count, poi
     return 0;
 }
 
-static void get_points_list(PyObject* obj_initial_centroids, PyObject* obj_datapoints,
-                                int initial_centroids_count, int datapoints_count,
-                                int dims_count,
-                                point_t* initial_centroids, point_t* datapoints) {
-    int i;
-    set_points_to_dst(obj_initial_centroids, initial_centroids_count, dims_count, initial_centroids);
-    set_points_to_dst(obj_datapoints, datapoints_count, dims_count, datapoints);
-    for (i=0; i<initial_centroids_count; i++) {
-        (/* * */initial_centroids)[i].cluster = i;
-    }
-}
-
 static int allocate_necessary(point_t** centroids_list, point_t** prev_centroids_list, point_t** points_list,
                             int dims_count, int k, int point_count) {
     int status;
@@ -381,7 +369,7 @@ static point_t* calculate_centroids(PyObject* obj_initial_centroids, PyObject* o
     status = allocate_necessary(&centroids_list, &prev_centroids_list, &points_list,
                         dims_count, k, point_count);
     if (status != STATUS_SUCCESS) {
-        return PyErr_NoMemory();
+        return NULL;
     }
 
     /* assign points from py objs */
@@ -435,6 +423,7 @@ static PyObject* fit(PyObject *self, PyObject *args) {
     }
 
     centroids_list = calculate_centroids(obj_initial_centroids, obj_datapoints, dims_count, k, point_count, max_iter, epsilon);
+    if (!centroids_list) return PyErr_NoMemory();
     centroids_list_as_pyobject = centroids_to_PyObject(centroids_list, k, dims_count);
     pointlist_free(&centroids_list, k, dims_count);
 
