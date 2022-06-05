@@ -159,7 +159,7 @@ class TestFit(unittest.TestCase):
         assert(dist_c)
     
 
-    @unittest.skip("Only needed once in a while")
+    #@unittest.skip("Only needed once in a while")
     def test_equal_to_templates(self):
         def test_equal_to_template_idx(*args):
             print(f"test_equal_to_template_idx{args} - start")
