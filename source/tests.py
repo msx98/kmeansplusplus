@@ -12,11 +12,12 @@ import kmeans_mine as kmeans_1
 import mykmeanssp
 from typing import List
 import math
+import time
 
 
 class TestFit(unittest.TestCase):
 
-    #@unittest.skip("blah")
+    @unittest.skip("blah")
     def test_c_and_sklearn_equal(self):
         print("test_py_and_c_equal_random() - start")
         seed = np.random.randint(1, 100000)
@@ -77,7 +78,7 @@ class TestFit(unittest.TestCase):
         self.assertTrue(True)#relative_error < 5.00)
         """
     
-    #@unittest.skip("blah")
+    @unittest.skip("blah")
     def test_py_and_mine_equal(self):
         print("test_py_and_mine_equal_random() - start")
         seed = np.random.randint(1, 100000)
@@ -138,7 +139,7 @@ class TestFit(unittest.TestCase):
         self.assertTrue(relative_error_py_c == 0)
 
 
-    #@unittest.skip("Disable if too heavy")
+    @unittest.skip("Disable if too heavy")
     def test_c_and_sklearn_over_and_over(self):
         np.random.seed(0)
         for i in range(100):
@@ -147,7 +148,7 @@ class TestFit(unittest.TestCase):
             pass
 
 
-    #@unittest.skip("enable later")
+    @unittest.skip("enable later")
     def test_py_and_c_equal_random(self):
         print("test_py_and_c_equal_random() - start")
         fit_params = list(randomize_fit_params())
@@ -158,8 +159,30 @@ class TestFit(unittest.TestCase):
         dist_c  = np.all(np.abs(centroids_list_py-centroids_list_c) < 0.001)
         assert(dist_c)
     
+    #@unittest.skip("What do we need this for")
+    def test_my_py_runtime_vs_sklearn(self):
+        fit_params = list(randomize_fit_params(k=10, max_iter=1000, eps=None, point_count=150, dims_count=7))
+        time_1, time_2, time_3 = time.time(), time.time(), time.time()
+        time_1 = time.time()
+        centroids_list_py = kmeans_1.KmeansAlgorithm(*fit_params)
+        time_2 = time.time()
+        centroids_list_sk = sklearn.cluster.KMeans(
+                    n_clusters=fit_params[3],
+                    init=np.array([fit_params[1][x] for x in fit_params[0]]),
+                    max_iter=fit_params[5],
+                    tol=fit_params[6],
+                    n_init=1,
+                    random_state=0,
+                    algorithm="full",
+                ).fit(fit_params[1]).cluster_centers_
+        time_3 = time.time()
+        delta_py = time_2-time_1
+        delta_sk = time_3-time_2
+        relative_sk_py = relative_error_centroids(centroids_list_sk, centroids_list_py)
+        print(f"delta_py/delta_sk={delta_py/delta_sk}")
+        print(f"relative err = {relative_sk_py}")
 
-    #@unittest.skip("Only needed once in a while")
+    @unittest.skip("Only needed once in a while")
     def test_equal_to_templates(self):
         def test_equal_to_template_idx(*args):
             print(f"test_equal_to_template_idx{args} - start")
@@ -202,12 +225,12 @@ class TestFit(unittest.TestCase):
         test_equal_to_template_idx(15, 750, 0, "input_3_db_1.txt", "input_3_db_2.txt")
 
 
-def randomize_fit_params(k=None, max_iter=None, eps=None):
+def randomize_fit_params(k=None, max_iter=None, eps=None, point_count=None, dims_count=None):
     k = k or np.random.randint(2, 5)
     max_iter = max_iter or np.random.randint(100, 300)
     eps = eps or float(np.random.rand(1,1))/100
-    point_count = np.random.randint(50, 200)
-    dims_count = np.random.randint(3,5)
+    point_count = point_count or np.random.randint(50, 200)
+    dims_count = dims_count or np.random.randint(3,5)
     datapoints_list = list(np.random.rand(point_count, dims_count))
     initial_centroids_list = kmeans_pp.KMeansPlusPlus(k, datapoints_list)
 
@@ -245,6 +268,9 @@ def dist_between_centroid_lists_redundant(list_1: List[List[float]], list_2: Lis
 
 def dist_between_centroid_lists(list_1: np.ndarray, list_2: np.ndarray) -> float:
     return np.linalg.norm(np.sort(list_1)-np.sort(list_2))
+
+def relative_error_centroids(centroids_real: List[List[float]], centroids_calc: List[List[float]]) -> float:
+    return np.linalg.norm(np.sort(centroids_real)-np.sort(centroids_calc))/np.linalg.norm(centroids_real)
 
 if __name__ == '__main__':
     print("Starting tests")
