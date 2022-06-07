@@ -19,7 +19,7 @@ def main():
     initial_centroids_list = fit_params[0]
     results = mykmeanssp.fit(*fit_params)
     print(','.join([str(x) for x in initial_centroids_list]))
-    print('\n'.join([','.join([str(y) for y in x]) for x in results]))
+    print('\n'.join([','.join(["%.4f"%y for y in x]) for x in results]))
 
 
 def extract_fit_params():
