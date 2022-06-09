@@ -48,8 +48,7 @@ def extract_fit_params():
 
 def KMeansPlusPlus(k: int, data: np.array) -> List[int]:
     data = np.copy(data)
-    N = len(data)
-    dims = len(data[0])
+    N, dims = data.shape
 
     D = np.ones(N)*np.inf
     P = np.ones(N)/N

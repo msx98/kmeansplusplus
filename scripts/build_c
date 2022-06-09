@@ -1,0 +1,5 @@
+cd ~/repos/softproj_2
+rm -rf debug/*
+./scripts/copy
+cd debug
+python3 setup.py build_ext --inplace
