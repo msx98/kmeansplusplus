@@ -55,8 +55,8 @@ def KMeansPlusPlus(k: int, x: np.array) -> List[int]:
     u_idx = [-1 for _ in range(N)]
     P = [0 for _ in range(N)]
     D = [float('inf') for _ in range(N)]
-    actual_indices = np.array(range(N)).reshape((N,1))
-    x = np.hstack((actual_indices, x))
+    #actual_indices = np.array(range(N)).reshape((N,1))
+    #x = np.hstack((actual_indices, x))
 
     i = 0
     selection = np.random.choice(x[:,0])
@@ -68,7 +68,7 @@ def KMeansPlusPlus(k: int, x: np.array) -> List[int]:
             min_square_dist = float('inf')
             for j in range(0,i+1):
                 u_j = u[j][0,:] # u.shape = (1,u.shape[0]) -> (u.shape[0],)
-                square_dist = np.sum((x_l[2:] - u_j[2:])**2)
+                square_dist = np.sum((x_l[1:] - u_j[1:])**2)
                 min_square_dist = min(square_dist, min_square_dist)
             D[l] = min_square_dist
         D_sum = sum(D)
@@ -79,7 +79,7 @@ def KMeansPlusPlus(k: int, x: np.array) -> List[int]:
         u[i] = x[np.where(x[:,0]==selection)]
         continue
 
-    indices = [a[0][1:] for a in u]
+    indices = [a[0] for a in u]
     return indices
 
 
