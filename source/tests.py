@@ -175,7 +175,7 @@ class TestFit(unittest.TestCase):
         for i in range(1000):
             np.random.seed(i)
             #print(f"hai {i}")
-            fit_params = list(randomize_fit_params(k=10, max_iter=1000, eps=None, point_count=150, dims_count=7))
+            fit_params = list(randomize_fit_params(k=1000, max_iter=1000, eps=None, point_count=150, dims_count=7))
             with open('/home/ubuntu/lala2.bin','wb') as f:
                 f.write(pickle.dumps(fit_params))
             time_1, time_2, time_3 = time.time(), time.time(), time.time()
@@ -191,7 +191,7 @@ class TestFit(unittest.TestCase):
             print(f"relative err = {relative_sk_py}")
             pass
 
-    @unittest.skip("Only needed once in a while")
+    #@unittest.skip("Only needed once in a while")
     def test_equal_to_templates(self):
         def test_equal_to_template_idx(*args):
             print(f"test_equal_to_template_idx{args} - start")
