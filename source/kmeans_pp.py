@@ -79,8 +79,8 @@ def KMeansPlusPlus(k: int, x: np.array) -> List[int]:
         u[i] = x[np.where(x[:,0]==selection)]
         continue
 
-    indices = [a[0] for a in u]
-    return indices
+    centroids_without_padding = [a[0] for a in u]
+    return centroids_without_padding
 
 
 def KMeansPlusPlus_original(k: int, data: np.array) -> List[int]:
