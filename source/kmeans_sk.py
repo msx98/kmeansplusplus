@@ -12,6 +12,8 @@ from pyclustering.cluster.center_initializer import random_center_initializer
 from pyclustering.cluster.encoder import type_encoding
 from pyclustering.cluster.encoder import cluster_encoder
 
+from typing import List
+
 
 def KmeansAlgorithm(
             initial_centroids_list: List[List[float]],

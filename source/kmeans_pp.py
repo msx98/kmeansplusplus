@@ -8,7 +8,6 @@ import mykmeanssp
 MSG_ERR_INVALID_INPUT = "Invalid Input!"
 MSG_ERR_GENERIC = "An Error Has Occurred"
 
-EPSILON = 0.001
 INFINITY = float('inf')
 MAX_ITER_UNSPEC = 300
 
@@ -16,8 +15,12 @@ MAX_ITER_UNSPEC = 300
 def main():
     np.random.seed(0)
     fit_params = extract_fit_params()
-    results = mykmeanssp.fit(*fit_params)
+    results = KmeansAlgorithm(*fit_params)
     print('\n'.join([','.join(["%.4f"%y for y in x]) for x in results]))
+
+
+def KmeansAlgorithm(*fit_params) -> List[List[float]]:
+    return mykmeanssp.fit(*fit_params)
 
 
 def extract_fit_params(should_print=True):
@@ -26,8 +29,7 @@ def extract_fit_params(should_print=True):
     initial_centroids_indices_as_written = [int(initial_centroids_list[i][0]) for i in range(len(initial_centroids_list))]
     if should_print: print(','.join([str(x) for x in initial_centroids_indices_as_written]))
     initial_centroids_indices_actual = select_actual_centroids(datapoints_list, initial_centroids_list)
-    datapoints_list = datapoints_list[:,1:]
-    datapoints_list = [list(x) for x in list(datapoints_list)]
+    datapoints_list = [list(x) for x in list(datapoints_list[:,1:])] # remove index, convert to List[List[float]] for C
     dims_count = len(datapoints_list[0])
     point_count = len(datapoints_list)
     return (
@@ -42,7 +44,8 @@ def extract_fit_params(should_print=True):
 
 
 def KMeansPlusPlus(k: int, x: np.array) -> List[int]:
-    np.random.rand(0)
+    np.random.seed(0)
+    x = np.array(x)
     N, d = x.shape
     u = [None for _ in range(k)]
     u_idx = [-1 for _ in range(N)]

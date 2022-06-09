@@ -9,10 +9,13 @@ import sklearn.cluster
 import kmeans_pp
 import kmeans as kmeans_2
 import kmeans_mine as kmeans_1
+import kmeans_sk
 import mykmeanssp
 from typing import List
 import math
 import time
+from sklearn.datasets import make_blobs
+import re
 
 
 class TestFit(unittest.TestCase):
@@ -33,7 +36,6 @@ class TestFit(unittest.TestCase):
             max_iter,
             eps
         ) = fit_params
-        print(initial_centroids_list)
         centroids_list_py = kmeans_1.KmeansAlgorithm(*fit_params)
         centroids_list_c = mykmeanssp.fit(*fit_params)
         centroids_list_sk = sklearn.cluster.KMeans(
@@ -159,7 +161,7 @@ class TestFit(unittest.TestCase):
         dist_c  = np.all(np.abs(centroids_list_py-centroids_list_c) < 0.001)
         assert(dist_c)
     
-    #@unittest.skip("What do we need this for")
+    @unittest.skip("What do we need this for")
     def test_my_py_runtime_vs_sklearn(self):
         fit_params = list(randomize_fit_params(k=10, max_iter=1000, eps=None, point_count=150, dims_count=7))
         time_1, time_2, time_3 = time.time(), time.time(), time.time()
@@ -182,47 +184,46 @@ class TestFit(unittest.TestCase):
         print(f"delta_py/delta_sk={delta_py/delta_sk}")
         print(f"relative err = {relative_sk_py}")
 
-    @unittest.skip("Only needed once in a while")
+    #@unittest.skip("Only needed once in a while")
     def test_equal_to_templates(self):
         def test_equal_to_template_idx(*args):
             print(f"test_equal_to_template_idx{args} - start")
             with patch('sys.argv', ["python3","blah.py"]+list([str(x) for x in args])):
                 fit_params = list(kmeans_pp.extract_fit_params())
+                initial_centroids_list = fit_params[0]
+
                 desired = None
-                file_expected = args[-1].split("_")[0].replace("input","output")+"_"+args[-1].split("_")[1]+".txt"
+                file_expected = args[-1].replace("input","output")
+                file_expected = re.sub('_db_\d', '', file_expected)
                 with open(file_expected, 'r') as f:
                     s = f.read().split("\n")[:-1]
                     s = [x.split(",") for x in s]
                     s[0] = [int(y) for y in s[0]]
-                    initial_centroids_list = s[0]
+                    desired_initial_centroids_list = s[0]
                     desired = np.array([[float(y) for y in x] for x in s[1:]])
-                fit_params[0] = initial_centroids_list
-                centroids_list_sk = sklearn.cluster.KMeans(
-                    n_clusters=fit_params[3],
-                    init=np.array([fit_params[1][x] for x in initial_centroids_list]),
-                    max_iter=fit_params[5],
-                    tol=fit_params[6],
-                    n_init=1,
-                    random_state=0,
-                    algorithm="full",
-                ).fit(fit_params[1]).cluster_centers_
-                centroids_list_py = kmeans_1.KmeansAlgorithm(*fit_params)
-                centroids_list_c = mykmeanssp.fit(*fit_params)
+
+                self.assertTrue(np.all(np.array(initial_centroids_list)==np.array(desired_initial_centroids_list)))
+
+                centroids_list_py = kmeans_pp.KmeansAlgorithm(*fit_params)
+                centroids_list_sk = kmeans_sk.KmeansAlgorithm(*fit_params)
+
                 centroids_list_py = np.array(centroids_list_py)
-                centroids_list_c = np.array(centroids_list_c)
                 centroids_list_sk = np.array(centroids_list_sk)
+
                 dist_desired_py = dist_between_centroid_lists(centroids_list_py, desired)
-                dist_py_c = dist_between_centroid_lists(centroids_list_py, centroids_list_c)
                 dist_desired_sk = dist_between_centroid_lists(centroids_list_sk, desired)
+                
                 print(dist_desired_py)
-                print(dist_py_c)
                 print(dist_desired_sk)
+
                 self.assertTrue(dist_desired_py == 0)
-                self.assertTrue(dist_py_c == 0)
+                #self.assertTrue(dist_desired_sk == 0)
+    
         print("test_equal_to_templates() - start")
-        test_equal_to_template_idx(3, 333, 0, "input_1_db_1.txt", "input_1_db_2.txt")
-        test_equal_to_template_idx(7, kmeans_pp.MAX_ITER_UNSPEC, 0, "input_2_db_1.txt", "input_2_db_2.txt")
-        test_equal_to_template_idx(15, 750, 0, "input_3_db_1.txt", "input_3_db_2.txt")
+        pathloc = f"/home/ubuntu/repos/softproj_2/resources/test_data_2"
+        test_equal_to_template_idx(3,  333,                       0, f"{pathloc}/input_1_db_1.txt", f"{pathloc}/input_1_db_2.txt")
+        test_equal_to_template_idx(7,  kmeans_pp.MAX_ITER_UNSPEC, 0, f"{pathloc}/input_2_db_1.txt", f"{pathloc}/input_2_db_2.txt")
+        test_equal_to_template_idx(15, 750,                       0, f"{pathloc}/input_3_db_1.txt", f"{pathloc}/input_3_db_2.txt")
 
 
 def randomize_fit_params(k=None, max_iter=None, eps=None, point_count=None, dims_count=None):
@@ -233,7 +234,7 @@ def randomize_fit_params(k=None, max_iter=None, eps=None, point_count=None, dims
     dims_count = dims_count or np.random.randint(3,5)
     datapoints_list = list(np.random.rand(point_count, dims_count))
     initial_centroids_list = kmeans_pp.KMeansPlusPlus(k, datapoints_list)
-
+    print(initial_centroids_list)
     return (
         initial_centroids_list,
         datapoints_list,
@@ -267,7 +268,7 @@ def dist_between_centroid_lists_redundant(list_1: List[List[float]], list_2: Lis
     return dist
 
 def dist_between_centroid_lists(list_1: np.ndarray, list_2: np.ndarray) -> float:
-    return np.linalg.norm(np.sort(list_1)-np.sort(list_2))
+    return np.linalg.norm((list_1)-(list_2))
 
 def relative_error_centroids(centroids_real: List[List[float]], centroids_calc: List[List[float]]) -> float:
     return np.linalg.norm(np.sort(centroids_real)-np.sort(centroids_calc))/np.linalg.norm(centroids_real)
