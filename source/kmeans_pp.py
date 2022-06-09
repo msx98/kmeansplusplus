@@ -32,7 +32,8 @@ def extract_fit_params():
     if k >= len(datapoints_list):
         print(MSG_ERR_INVALID_INPUT)
         raise Exception()
-    initial_centroids_list = KMeansPlusPlus(k, datapoints_list)
+    initial_centroids_indices = KMeansPlusPlus(k, datapoints_list)
+    initial_centroids_list = select_centroids_by_indices(datapoints_list, initial_centroids_indices)
     point_count = len(datapoints_list)
     dims_count = len(datapoints_list[0])
     return (
@@ -104,7 +105,13 @@ def KMeansPlusPlus_original(k: int, data: np.array) -> List[int]:
     return centroids_choice
 
 
-def select_centroids_by_indices(data: List[List[float]], indices: List[int]):
+def select_centroids_by_indices(data: List[List[float]], indices: List[int]) -> List[List[float]]:
+    data = np.array(data)
+    k = len(indices)
+    centroids = [None for _ in range(k)]
+    for index in indices:
+        index_pos_in_data = np.where(data[:,0] == index)
+        pass
     pass #FIXME - do this
 
 
@@ -132,14 +139,17 @@ def validate_input_files(file_name1: str, file_name2: str) -> bool:
 
 def verify_data(data: List[List[float]]):
     N = len(data)
-    if len(data) == 0:
-        print(MSG_ERR_GENERIC)
-        exit(1)
+    if N == 0:
+        exit_error()
     dims = len(data[0])
     for point in data:
         if len(point) != dims:
-            print(MSG_ERR_GENERIC)
-            exit(1)
+            exit_error()
+    if dims == 0:
+        exit_error()
+    for point in data:
+        if not point[0].is_integer():
+            exit_error()
 
 
 def get_cmd_args():
@@ -156,10 +166,21 @@ def get_cmd_args():
         else:
             raise Exception()
     except:
-        print(args)
+        #print(args)
+        exit_invalid_input()
 
-        print(MSG_ERR_INVALID_INPUT)
-        exit(1)
+
+def exit_error():
+    exit_with_msg(MSG_ERR_GENERIC)
+
+
+def exit_invalid_input():
+    exit_with_msg(MSG_ERR_INVALID_INPUT)
+
+
+def exit_with_msg(msg: str):
+    print(msg)
+    exit(1)
 
 
 if __name__ == '__main__':
