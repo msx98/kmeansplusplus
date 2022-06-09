@@ -1,34 +1,57 @@
 {
-    // Use IntelliSense to learn about possible attributes.
-    // Hover to view descriptions of existing attributes.
-    // For more information, visit: https://go.microsoft.com/fwlink/?linkid=830387
-    "version": "0.2.0",
-    "configurations": [
-        {
-            "name": "C Launch",
-            "type": "cppdbg",
-            "request": "launch",
-            "program": "/home/ubuntu/repos/softproj_2/debug/c/kmeans",
-            "args": ["3","600","resources/input_1.txt","debug/c/output_1_c.txt"],
-            "cwd": "${workspaceFolder}",
-            "stopAtEntry": false,
-            "customLaunchSetupCommands": [
-
-            ],
-            
-            "launchCompleteCommand": "exec-run",
-            "linux": {
-              "MIMode": "gdb",
-              "miDebuggerPath": "/usr/bin/gdb"
-            },
-            "osx": {
-              "MIMode": "lldb"
-            },
-            "windows": {
-              "MIMode": "gdb",
-              "miDebuggerPath": "C:\\MinGw\\bin\\gdb.exe"
-            },
-        
-          }
-    ]
+  // Use IntelliSense to learn about possible attributes.
+  // Hover to view descriptions of existing attributes.
+  // For more information, visit: https://go.microsoft.com/fwlink/?linkid=830387
+  "version": "0.2.0",
+  "configurations": [
+    {
+      "name": "Python: Current File",
+      "type": "python",
+      "request": "launch",
+      "preLaunchTask": "Build C",
+      "program": "${workspaceRoot}/debug/${fileBasename}",
+      "cwd": "${workspaceRoot}/debug",
+      "console": "integratedTerminal",
+      "args": ["3", "100", "0.01", "input_1_db_1.txt", "input_1_db_2.txt"],
+      "justMyCode": true,
+    },
+    {
+      "name": "Python: No Build",
+      "type": "python",
+      "request": "launch",
+      "preLaunchTask": "Copy Resources",
+      "program": "${workspaceRoot}/debug/${fileBasename}",
+      "cwd": "${workspaceRoot}/debug",
+      "console": "integratedTerminal",
+      "args": ["3", "100", "0.01", "input_1_db_1.txt", "input_1_db_2.txt"],
+      "justMyCode": true,
+    },
+    {
+      "name": "C Launch",
+      "type": "cppdbg",
+      "request": "launch",
+      "program": "/home/ubuntu/repos/softproj_2/debug/c/kmeans",
+      "args": [
+        "3",
+        "600",
+        "resources/input_1.txt",
+        "debug/c/output_1_c.txt"
+      ],
+      "cwd": "${workspaceFolder}",
+      "stopAtEntry": false,
+      "customLaunchSetupCommands": [],
+      "launchCompleteCommand": "exec-run",
+      "linux": {
+        "MIMode": "gdb",
+        "miDebuggerPath": "/usr/bin/gdb"
+      },
+      "osx": {
+        "MIMode": "lldb"
+      },
+      "windows": {
+        "MIMode": "gdb",
+        "miDebuggerPath": "C:\\MinGw\\bin\\gdb.exe"
+      },
+    }
+  ]
 }
