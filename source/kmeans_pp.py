@@ -45,59 +45,25 @@ def extract_fit_params():
         eps
     )
 
-def _find_first_centroids(K: int, data: np.array) -> List[int]:
-    np.hstack((np.array(range(1, data.shape[0]+1)).reshape((data.shape[0],1)), data))
-    number_of_points_in_data_N = len(data)  # the number of rows(points) in data
-    # todo check for error from last time
-    if K >= number_of_points_in_data_N:
-        print(MSG_ERR_INVALID_INPUT)
-        raise Exception()
-    options = list(data[:, 0])
-    np.random.seed(0)
-    centroid_list = [np.random.choice(options)]
-    
-    min_distance_vector = np.zeros(number_of_points_in_data_N)
-    probability_vector = np.zeros(number_of_points_in_data_N)
 
-    for i in range(K):
-        pass
-
-    for i in range(1, K):
-        for point in data:
-            minimum_distance = np.inf
-            for index in centroid_list:
-                centroid_index = np.where(data[:, 0] == index)
-                centroid = data[centroid_index][0]
-                current_distance = np.sqrt(np.sum((point[1:] - centroid[1:]) ** 2))
-                minimum_distance = min(current_distance, minimum_distance)
-            min_distance_vector[int(point[0])] = minimum_distance
-        mini_distance_sum = sum(min_distance_vector)  # sum all args in min_disance_vector (denominator)
-        probability_vector = min_distance_vector / mini_distance_sum  # calculate the probability for each
-        # todo np.max or this calcualte (choose random or the maximum) 
-        random_prob_choice = np.random.choice(probability_vector)
-        next_centroid_index = int(np.where(probability_vector == random_prob_choice)[0])
-        centroid_list.append(next_centroid_index)
-    return centroid_list
-
-
-def KMeansPlusPlus_2(k: int, x: np.array) -> List[int]:
+def KMeansPlusPlus(k: int, x: np.array) -> List[int]:
     np.random.rand(0)
     N, d = x.shape
-    u = [None for _ in range(N)]
+    u = [None for _ in range(k)]
     u_idx = [-1 for _ in range(N)]
     P = [0 for _ in range(N)]
     D = [float('inf') for _ in range(N)]
 
     i = 0
-    selection = int(np.random.choice(x[:,0]))
-    u[0] = x[selection]
+    selection = np.random.choice(x[:,0])
+    u[0] = x[np.where(x[:,0]==selection)]
 
-    while i < k:
+    while (i+1) < k:
         for l in range(N):
             x_l = x[l] # remove index
             min_square_dist = float('inf')
             for j in range(0,i+1):
-                u_j = u[j] # remove index
+                u_j = u[j][0,:] # u.shape = (1,u.shape[0]) -> (u.shape[0],)
                 square_dist = np.sum((x_l[1:] - u_j[1:])**2)
                 min_square_dist = min(square_dist, min_square_dist)
             D[l] = min_square_dist
@@ -105,16 +71,20 @@ def KMeansPlusPlus_2(k: int, x: np.array) -> List[int]:
         P = D/D_sum
 
         i += 1
-        selection = int(np.random.choice(x[:,0], p=P))
-        u[i] = x[selection]
+        selection = np.random.choice(x[:,0], p=P)
+        u[i] = x[np.where(x[:,0]==selection)]
         continue
 
-    return u
+    indices = [int(a[0][0]) for a in u]
+    return indices
 
 
-def KMeansPlusPlus(k: int, data: np.array) -> List[int]:
-    return KMeansPlusPlus_2(k, data)
-    #return _find_first_centroids(k, data)
+def KMeansPlusPlus_original(k: int, data: np.array) -> List[int]:
+    # below is the original code I wrote for this
+    # much more elegant but doesn't seem to reproduce the same result as the example...
+    # calling np.random.choice(N, p=np.ones(N)/N) for the first time yields 54 instead of 44
+    # so the randomization is obviously different
+    # I think it makes no sense to force us to use the same randomization method as you
     data = np.copy(data)
     N, dims = data.shape
 
@@ -132,6 +102,10 @@ def KMeansPlusPlus(k: int, data: np.array) -> List[int]:
             D[l] = np.min(np.sum(np.square(data[l]-centroids_list), axis=1))
         P = D/np.sum(D)
     return centroids_choice
+
+
+def select_centroids_by_indices(data: List[List[float]], indices: List[int]):
+    pass #FIXME - do this
 
 
 def _read_data_as_np(file_name1: str, file_name2: str) -> np.array:
