@@ -16,6 +16,17 @@
       "justMyCode": true,
     },
     {
+      "name": "Python: Tests",
+      "type": "python",
+      "request": "launch",
+      "preLaunchTask": "Copy Resources",
+      "program": "${workspaceRoot}/source/tests.py",
+      "cwd": "${workspaceRoot}/source",
+      "console": "integratedTerminal",
+      "args": [],
+      "justMyCode": true,
+    },
+    {
       "name": "Python: No Build",
       "type": "python",
       "request": "launch",

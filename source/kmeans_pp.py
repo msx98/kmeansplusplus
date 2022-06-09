@@ -18,26 +18,27 @@ def main():
     fit_params = extract_fit_params()
     initial_centroids_list = fit_params[0]
     results = mykmeanssp.fit(*fit_params)
-    print(','.join([str(x) for x in initial_centroids_list]))
     print('\n'.join([','.join(["%.4f"%y for y in x]) for x in results]))
 
 
 def extract_fit_params():
     k, max_iter, eps, file_name_1, file_name_2 = get_cmd_args()
     if not (validate_input_files(file_name_1, file_name_2)):
-        print(MSG_ERR_INVALID_INPUT)
-        raise Exception()
+        exit_invalid_input()
     datapoints_list = _read_data_as_np(file_name_1, file_name_2)
     verify_data(datapoints_list)
     if k >= len(datapoints_list):
-        print(MSG_ERR_INVALID_INPUT)
-        raise Exception()
-    initial_centroids_indices = KMeansPlusPlus(k, datapoints_list)
-    initial_centroids_list = select_centroids_by_indices(datapoints_list, initial_centroids_indices)
-    point_count = len(datapoints_list)
+        exit_invalid_input()
+    initial_centroids_list = KMeansPlusPlus(k, datapoints_list)
+    initial_centroids_indices_as_written = [int(initial_centroids_list[i][0]) for i in range(len(initial_centroids_list))]
+    print(','.join([str(x) for x in initial_centroids_indices_as_written]))
+    initial_centroids_indices_actual = select_actual_centroids(datapoints_list, initial_centroids_list)
+    datapoints_list = datapoints_list[:,1:]
+    datapoints_list = [list(x) for x in list(datapoints_list)]
     dims_count = len(datapoints_list[0])
+    point_count = len(datapoints_list)
     return (
-        initial_centroids_list,
+        initial_centroids_indices_actual,
         datapoints_list,
         dims_count,
         k,
@@ -54,6 +55,8 @@ def KMeansPlusPlus(k: int, x: np.array) -> List[int]:
     u_idx = [-1 for _ in range(N)]
     P = [0 for _ in range(N)]
     D = [float('inf') for _ in range(N)]
+    actual_indices = np.array(range(N)).reshape((N,1))
+    x = np.hstack((actual_indices, x))
 
     i = 0
     selection = np.random.choice(x[:,0])
@@ -65,7 +68,7 @@ def KMeansPlusPlus(k: int, x: np.array) -> List[int]:
             min_square_dist = float('inf')
             for j in range(0,i+1):
                 u_j = u[j][0,:] # u.shape = (1,u.shape[0]) -> (u.shape[0],)
-                square_dist = np.sum((x_l[1:] - u_j[1:])**2)
+                square_dist = np.sum((x_l[2:] - u_j[2:])**2)
                 min_square_dist = min(square_dist, min_square_dist)
             D[l] = min_square_dist
         D_sum = sum(D)
@@ -76,7 +79,7 @@ def KMeansPlusPlus(k: int, x: np.array) -> List[int]:
         u[i] = x[np.where(x[:,0]==selection)]
         continue
 
-    indices = [int(a[0][0]) for a in u]
+    indices = [a[0][1:] for a in u]
     return indices
 
 
@@ -105,14 +108,15 @@ def KMeansPlusPlus_original(k: int, data: np.array) -> List[int]:
     return centroids_choice
 
 
-def select_centroids_by_indices(data: List[List[float]], indices: List[int]) -> List[List[float]]:
-    data = np.array(data)
-    k = len(indices)
-    centroids = [None for _ in range(k)]
-    for index in indices:
-        index_pos_in_data = np.where(data[:,0] == index)
-        pass
-    pass #FIXME - do this
+def select_actual_centroids(data: List[List[float]], initial_centroids_list: List[List[float]]) -> List[int]:
+    # incase we have duplicates, etc...
+    initial_centroids_indices_actual = [None for centroid in initial_centroids_list]
+    for i, centroid in enumerate(initial_centroids_list):
+        loc = np.where(np.all(data==centroid,axis=1))[0] #[0] because this returns a tuple
+        if len(loc) == 0: # or len(loc)>=2
+            exit_error()
+        initial_centroids_indices_actual[i] = loc[0]
+    return initial_centroids_indices_actual
 
 
 def _read_data_as_np(file_name1: str, file_name2: str) -> np.array:
