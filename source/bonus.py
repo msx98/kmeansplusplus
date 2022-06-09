@@ -1,5 +1,4 @@
 
-import kmeans_pp
 from typing import List
 import numpy as np
 from sklearn.datasets import load_iris
