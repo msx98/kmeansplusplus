@@ -27,6 +27,17 @@
       "justMyCode": true,
     },
     {
+      "name": "Python: 44 missing",
+      "type": "python",
+      "request": "launch",
+      "preLaunchTask": "Copy Resources",
+      "program": "${workspaceRoot}/source/${fileBasename}",
+      "cwd": "${workspaceRoot}/source",
+      "console": "integratedTerminal",
+      "args": ["3", "333", "0", "${workspaceRoot}/debug/input_1_db_1_44_missing.txt", "${workspaceRoot}/debug/input_1_db_2.txt"],
+      "justMyCode": true,
+    },
+    {
       "name": "C Launch",
       "type": "cppdbg",
       "request": "launch",

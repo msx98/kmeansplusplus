@@ -3,3 +3,4 @@ rm -rf debug/*
 ./scripts/copy
 cd debug
 python3 setup.py build_ext --inplace
+cp *.so ~/source
