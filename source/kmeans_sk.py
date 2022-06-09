@@ -24,12 +24,13 @@ def KmeansAlgorithm(
             max_iter: int,
             eps: float
         ) -> List[List[float]]:
-    return KMeans(
+    initial_centroids_list = np.array([data[idx] for idx in initial_centroids_list])
+    return np.around(KMeans(
             n_clusters=k,
-            init=np.array([data[idx] for idx in initial_centroids_list]),
-            max_iter=max_iter,
+            init=initial_centroids_list,
             tol=eps,
             n_init=1,
+            #algorithm="full",
             random_state=0,
-            algorithm="full",
-        ).fit(data).cluster_centers_
+            max_iter=max_iter
+        ).fit(data).cluster_centers_, 4)
