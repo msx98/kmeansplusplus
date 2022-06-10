@@ -10,3 +10,4 @@ For the initialization part, there is also a more elegant solution which randomi
 
 I also wrote some pretty extensive tests - among other things, comparing the results to sklearn, in `source/tests.py`
 
+* I am aware of the mess in the file structure, also I would usually try to modularize the files more, but the project required the files to have specific names
